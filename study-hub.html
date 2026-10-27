@@ -183,6 +183,7 @@ section.pane.on{display:block}
     <button role="tab" aria-selected="false" data-tab="galaxy">Galaxy map</button>
     <button role="tab" aria-selected="false" data-tab="cards">Flashcards</button>
     <button role="tab" aria-selected="false" data-tab="trivia">Trivia game</button>
+    <button role="tab" aria-selected="false" data-tab="help">Help</button>
   </nav>
 
   <section class="pane on" id="pane-study" role="tabpanel">
@@ -225,6 +226,7 @@ section.pane.on{display:block}
     </div>
     <div class="fc-wrap">
       <div class="muted small" id="fcInfo"></div>
+      <div class="small muted">👆 Click the card to reveal the answer</div>
       <button class="flash" id="flash" aria-label="Flip card"><div class="in">
         <div class="face"><div class="lab">Question</div><div class="txt" id="fcFront"></div></div>
         <div class="face back"><div class="lab">Answer</div><div class="txt" id="fcBack"></div></div>
@@ -249,6 +251,46 @@ section.pane.on{display:block}
       <button class="btn ghost small" id="resetStats">Reset my progress</button>
     </div>
     <div id="triviaGame" hidden></div>
+  </section>
+
+  <section class="pane" id="pane-help" role="tabpanel">
+    <div class="hint"><b>How to use this app.</b> It has five study tools plus this help. Everything works offline in your browser, and your progress is saved on this device only.</div>
+    <div class="acc helpacc">
+      <details open><summary><span class="num">1</span><span>Study notes</span><span class="chev">›</span></summary><div class="body"><ul>
+        <li>Click a section title to open or close it. Each one starts with a highlighted <b>Key idea</b> and then the main points from your notes.</li>
+        <li>Words with a <span class="term" data-def="Example: a short definition appears here.">dotted underline</span> are key terms. Hover over them (computer) or tap them (phone/tablet) to read a definition. Tap again to close it.</li>
+        <li>Press <b>Mark as studied</b> at the end of a section to track your progress. The bar at the top fills up as you go. You can undo it at any time.</li></ul></div></details>
+      <details><summary><span class="num">2</span><span>Timeline &amp; links</span><span class="chev">›</span></summary><div class="body"><ul>
+        <li>Events are listed in order and grouped by period (Restoration, Decline and crisis, Primo de Rivera, Second Republic).</li>
+        <li><b>Click an event</b> to open its explanation. You will see <b>Because of</b> (what caused it) and <b>Led to</b> (what it caused). Click any of those links to jump to that event. Click the event again to close it.</li>
+        <li>Events directly connected to the open one get an orange outline.</li>
+        <li>Use the filters <b>Where</b> (Spain, Basque Country, Catalonia) and <b>Theme</b> (politics, nationalism, labour, army, economy, Church) to show only what you want to review. Choose <b>All</b> to clear a filter.</li></ul></div></details>
+      <details><summary><span class="num">3</span><span>Galaxy map</span><span class="chev">›</span></summary><div class="body"><ul>
+        <li>Every <b>star is an event</b>. The oldest is near the centre and the newest on the outer edge. A bigger star has more connections. Colours show the period (see the legend at the bottom of the map).</li>
+        <li><b>Lines</b> go from cause to effect.</li>
+        <li><b>Click a star</b> to light up its connections and show its story in the card next to the map (or under it on a phone). Click empty space or the same star again to deselect. Use the links in the card to move along the chain.</li>
+        <li><b>Move a star:</b> drag it. Its lines follow. <b>Move the whole map:</b> drag the dark background. <b>Zoom:</b> mouse wheel, or the + / − buttons. The ⟲ button resets the view.</li>
+        <li><b>Spread out overlaps</b> pushes crowded stars apart automatically. <b>Reset layout</b> puts every star back in its original place. Your layout is remembered.</li>
+        <li>The <b>Theme</b> chips dim the stars that do not belong to a theme.</li>
+        <li><b>Show in timeline</b> opens that event in the Timeline tab.</li></ul></div></details>
+      <details><summary><span class="num">4</span><span>Flashcards</span><span class="chev">›</span></summary><div class="body"><ul>
+        <li>You see a <b>question</b> on the card. <b>Click the card</b> to flip it and see the answer. Click again to flip it back.</li>
+        <li>Then choose: <b>I knew it</b> removes the card from the deck, and <b>Show again soon</b> puts it back a few cards later.</li>
+        <li>The counter shows how many cards you have learned and how many are left. When the deck is finished, press <b>Shuffle &amp; restart</b>.</li>
+        <li>Choose the deck at the top: <b>All cards</b>, <b>Key terms</b> or <b>Facts &amp; dates</b>. Changing deck starts it again in a new random order.</li></ul></div></details>
+      <details><summary><span class="num">5</span><span>Trivia game</span><span class="chev">›</span></summary><div class="body"><ul>
+        <li>Pick a mode: <b>Quick round</b> (10 questions), <b>Survival</b> (3 lives, ends when you run out) or <b>Weak spots</b> (only what you missed; it unlocks after your first mistake).</li>
+        <li>Question types change all the time: multiple choice, true/false, “which came first?”, “which event took place in…?” and <b>Put in order</b> (tap the four events from earliest to latest; <b>Undo</b> removes your last tap).</li>
+        <li>On a computer you can press <b>1–4</b> to answer and <b>Enter</b> to go to the next question.</li>
+        <li>After each answer you get the explanation and the section to review. Points: 10 per correct answer plus a bonus for streaks.</li>
+        <li>The game remembers what you get wrong and asks it more often, and avoids repeating recent questions. A topic counts as <b>mastered</b> after two correct answers in a row.</li>
+        <li><b>Quit</b> ends the game and shows your results; answers given so far are kept. <b>Reset my progress</b> on the menu deletes all trivia statistics.</li></ul></div></details>
+      <details><summary><span class="num">?</span><span>Tips and troubleshooting</span><span class="chev">›</span></summary><div class="body"><ul>
+        <li><b>Suggested routine:</b> read a section in Study notes → follow its events in the Timeline or Galaxy → review with Flashcards → test yourself in the Trivia → repeat Weak spots until it is empty.</li>
+        <li><b>Theme:</b> the button at the top right switches between light and dark mode.</li>
+        <li><b>Saved data</b> (studied sections, galaxy layout, trivia progress) lives in this browser. It is lost if you clear site data or use a private window, and it is not shared between devices.</li>
+        <li><b>Phones:</b> everything works with touch; the tab bar scrolls sideways.</li></ul></div></details>
+    </div>
   </section>
 </div>
 
