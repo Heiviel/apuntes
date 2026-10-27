@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>History Study Hub</title>
+<style>
+:root{
+  --bg:#f6f1e7; --card:#fffdf8; --ink:#241f1a; --muted:#6d655b; --line:#e2d9c8;
+  --accent:#a3321f; --accent-soft:#f3dcd6; --ok:#2f7d4f; --ok-soft:#d9efe1; --bad:#b3261e; --bad-soft:#f6d9d6;
+  --rest:#3b6ea5; --crisis:#c28a1b; --dict:#5b4a7a; --rep:#a3321f;
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 18px rgba(60,40,10,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#181512; --card:#221e19; --ink:#f0e9dc; --muted:#a79d8d; --line:#37312a;
+    --accent:#e0745f; --accent-soft:#3a2420; --ok:#6cc58e; --ok-soft:#1f3326; --bad:#ef8a82; --bad-soft:#3b2220;
+    --rest:#7fb0e6; --crisis:#e2b04a; --dict:#a995cc; --rep:#e0745f;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181512; --card:#221e19; --ink:#f0e9dc; --muted:#a79d8d; --line:#37312a;
+  --accent:#e0745f; --accent-soft:#3a2420; --ok:#6cc58e; --ok-soft:#1f3326; --bad:#ef8a82; --bad-soft:#3b2220;
+  --rest:#7fb0e6; --crisis:#e2b04a; --dict:#a995cc; --rep:#e0745f; --shadow:none;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.2;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px 64px}
+header.top{padding:28px 0 12px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+header.top h1{font-size:clamp(1.5rem,4vw,2.1rem)}
+header.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.themebtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:.85rem}
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{border:1px solid transparent;background:none;padding:8px 16px;border-radius:999px;font-weight:600;white-space:nowrap;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+section.pane{display:none;padding-top:22px}
+section.pane.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:var(--card);padding:5px 12px;border-radius:999px;font-size:.85rem}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:10px;font-weight:600}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--line)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+/* study */
+.progress{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.progress>i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.acc{margin-top:12px}
+.acc details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.acc summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:12px;align-items:center;font-weight:600}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary .num{font-family:Georgia,serif;color:var(--accent);min-width:3.2em}
+.acc summary .chev{margin-left:auto;transition:transform .2s;color:var(--muted)}
+.acc details[open] .chev{transform:rotate(90deg)}
+.acc summary .done{color:var(--ok);font-size:.8rem;display:none}
+.acc details.studied summary .done{display:inline}
+.acc .body{padding:0 16px 16px 16px;border-top:1px solid var(--line)}
+.acc .key{margin:14px 0 8px;padding:10px 12px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:.95rem}
+.acc ul{margin:8px 0 12px;padding-left:1.2em}
+.acc li{margin:4px 0}
+.acc h4{margin:14px 0 2px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.term{position:relative;border-bottom:1.5px dotted var(--accent);cursor:help}
+.term.open::after,.term:hover::after{content:attr(data-def);position:absolute;left:0;top:1.5em;z-index:9;width:min(280px,70vw);background:var(--ink);color:var(--bg);padding:8px 10px;border-radius:8px;font-size:.82rem;line-height:1.35;font-weight:400;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.studybtn{margin-top:6px}
+/* timeline */
+.filters{display:grid;gap:8px;margin-bottom:16px}
+.filters .lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);min-width:5.5em}
+.era{margin:22px 0 8px;display:flex;align-items:baseline;gap:10px}
+.era h3{font-size:1.1rem}
+.era span{font-size:.85rem;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0 0 0 18px;border-left:3px solid var(--c,var(--line))}
+.tl li{position:relative;margin:0 0 8px}
+.tl li::before{content:"";position:absolute;left:-26px;top:16px;width:11px;height:11px;border-radius:50%;background:var(--c);border:2px solid var(--bg)}
+.ev{width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.ev .y{font-family:Georgia,serif;font-weight:700;color:var(--c);min-width:6.6em}
+.ev .t{font-weight:600;flex:1 1 220px}
+.ev.linked{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.ev[aria-expanded="true"]{border-color:var(--ink);background:var(--accent-soft)}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:.7rem;padding:1px 8px;border-radius:99px;background:var(--line);color:var(--muted)}
+.detail{margin:6px 0 4px;padding:14px;border-radius:12px;background:var(--card);border:1px dashed var(--accent)}
+.detail p{margin:0 0 10px}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.links{grid-template-columns:1fr}}
+.links h4{margin:0 0 6px;font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.links .chip{margin:0 4px 4px 0;border-color:var(--accent)}
+.hint{padding:10px 14px;border-radius:10px;background:var(--accent-soft);font-size:.9rem;margin-bottom:12px}
+/* galaxy */
+.galaxy{position:relative;overflow:hidden;background:radial-gradient(circle at 50% 50%,#2a1d3f 0%,#120d22 45%,#07050f 100%);border-color:#2b2340}
+.galwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.galwrap #gInfo{position:sticky;top:70px;margin:0;max-height:calc(100vh - 90px);overflow:auto}
+.galwrap .links{grid-template-columns:1fr}
+@media(max-width:860px){
+  .galwrap{grid-template-columns:1fr}
+  .galwrap #gInfo{position:static;max-height:none}
+  #gal{max-height:min(46vh,460px)!important;min-height:280px!important}
+}
+#gal{display:block;width:100%;height:auto;max-height:min(80vh,820px);min-height:0;aspect-ratio:1/1;cursor:grab;touch-action:none;user-select:none}
+#gal.drag{cursor:grabbing}
+.gstar{cursor:pointer}
+.gstar circle.halo{transition:opacity .2s}
+.gstar text{fill:#e9e2ff;font:11px system-ui,sans-serif;pointer-events:none;paint-order:stroke;stroke:#07050f;stroke-width:3px}
+.gstar text.ttl{font-size:12px;font-weight:600}
+.gstar.dim{opacity:.18}
+.gstar:focus-visible circle.core{stroke:#fff;stroke-width:3}
+.gedge{fill:none;stroke:#b9a8ff;stroke-opacity:.16;stroke-width:1}
+.gedge.on{stroke:#ffd27a;stroke-opacity:.95;stroke-width:2.2}
+.gedge.dim{stroke-opacity:.04}
+.zoomctl{position:absolute;right:10px;top:10px;display:grid;gap:6px}
+.zoomctl button{width:36px;height:36px;border-radius:10px;border:1px solid #40355e;background:#1b1430;color:#e9e2ff;font-size:1.1rem}
+.legend{position:absolute;left:10px;bottom:10px;display:flex;gap:10px;flex-wrap:wrap;font-size:.75rem;color:#cfc6ee;max-width:80%}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.bgstar{fill:#fff}
+@media(prefers-reduced-motion:no-preference){.bgstar{animation:tw 4s ease-in-out infinite}@keyframes tw{50%{opacity:.25}}}
+/* flashcards */
+.fc-wrap{display:grid;gap:14px;justify-items:center}
+.flash{width:100%;max-width:560px;min-height:260px;perspective:1000px;border:0;background:none;padding:0}
+.flash .in{position:relative;width:100%;min-height:260px;transition:transform .5s;transform-style:preserve-3d}
+.flash.flip .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:26px;border-radius:16px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
+.face.back{transform:rotateY(180deg);background:var(--accent-soft)}
+.face .lab{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:12px}
+.face .txt{font-family:Georgia,serif;font-size:1.3rem}
+.face.back .txt{font-size:1.1rem}
+@media(prefers-reduced-motion:reduce){.flash .in{transition:none}}
+/* trivia */
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mode{padding:18px;text-align:left;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:14px}
+.mode:hover:not(:disabled){border-color:var(--accent)}
+.mode:disabled{opacity:.5;cursor:not-allowed}
+.mode b{font-family:Georgia,serif;font-size:1.15rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0}
+.stat{padding:12px 14px;text-align:center}
+.stat b{display:block;font-size:1.5rem;font-family:Georgia,serif}
+.hud{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:.9rem;color:var(--muted)}
+.hud b{color:var(--ink)}
+.q{padding:22px}
+.q .kind{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);font-weight:700}
+.q h2{font-size:1.3rem;margin:8px 0 16px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;padding:12px 14px;border:1.5px solid var(--line);background:var(--bg);border-radius:10px;display:flex;gap:10px}
+.opt .k{font-weight:700;color:var(--muted);min-width:1.2em}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.fb{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:.95rem}
+.fb.ok{background:var(--ok-soft)} .fb.bad{background:var(--bad-soft)}
+.fb b{display:block;margin-bottom:2px}
+.picked{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding:0;list-style:none;min-height:2.2em}
+.picked li{background:var(--accent-soft);border:1px solid var(--accent);padding:4px 10px;border-radius:8px;font-size:.9rem}
+.picked li.ok{background:var(--ok-soft);border-color:var(--ok)}
+.picked li.bad{background:var(--bad-soft);border-color:var(--bad)}
+.opt.used{opacity:.4}
+.summary{padding:26px;text-align:center}
+.summary .big{font-family:Georgia,serif;font-size:3rem}
+.miss{text-align:left;margin-top:16px}
+.miss li{margin:6px 0}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>History of Spain and the Basque Country</h1>
+      <p>Unit 4 — the beginning of the 20th century. Study the notes, follow the cause-and-effect links, then test yourself.</p>
+    </div>
+    <button class="themebtn" id="themeBtn" aria-label="Toggle light and dark theme">Theme</button>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" aria-selected="true" data-tab="study">Study notes</button>
+    <button role="tab" aria-selected="false" data-tab="timeline">Timeline &amp; links</button>
+    <button role="tab" aria-selected="false" data-tab="galaxy">Galaxy map</button>
+    <button role="tab" aria-selected="false" data-tab="cards">Flashcards</button>
+    <button role="tab" aria-selected="false" data-tab="trivia">Trivia game</button>
+  </nav>
+
+  <section class="pane on" id="pane-study" role="tabpanel">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px">
+      <strong id="studyCount"></strong>
+      <span class="small muted">Dotted words show a definition (hover or tap).</span>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="studyBar"></i></div>
+    <div class="acc" id="acc"></div>
+  </section>
+
+  <section class="pane" id="pane-timeline" role="tabpanel">
+    <div class="hint">Click an event to see what caused it and what it led to. Linked events light up in the timeline; click a link to jump to it.</div>
+    <div class="filters">
+      <div class="row"><span class="lbl">Where</span><span class="row" id="fScope"></span></div>
+      <div class="row"><span class="lbl">Theme</span><span class="row" id="fTheme"></span></div>
+    </div>
+    <div id="tl"></div>
+  </section>
+
+  <section class="pane" id="pane-galaxy" role="tabpanel">
+    <div class="hint">Every star is an event, arranged in a spiral from the oldest (centre) to the latest (edge). Lines are cause → effect. Click a star to light up its connections; drag to move and scroll or use the buttons to zoom.</div>
+    <div class="filters"><div class="row"><span class="lbl">Theme</span><span class="row" id="gTheme"></span></div>
+      <div class="row"><span class="lbl">Layout</span><button class="chip" id="gSpread">Spread out overlaps</button><button class="chip" id="gReset">Reset layout</button><span class="small muted">Drag any star to move it; positions are remembered.</span></div></div>
+    <div class="galwrap">
+    <div class="galaxy card" id="galBox">
+      <svg id="gal" viewBox="-420 -420 840 840" role="img" aria-label="Galaxy map of connected historical events"></svg>
+      <div class="zoomctl"><button id="gzi" aria-label="Zoom in">+</button><button id="gzo" aria-label="Zoom out">−</button><button id="gzr" aria-label="Reset view">⟲</button></div>
+      <div class="legend" id="gLegend"></div>
+    </div>
+    <div class="detail" id="gInfo"><p class="muted" style="margin:0">Select a star to see its story.</p></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-cards" role="tabpanel">
+    <div class="row" style="margin-bottom:14px">
+      <button class="chip" data-deck="all" aria-pressed="true">All cards</button>
+      <button class="chip" data-deck="terms" aria-pressed="false">Key terms</button>
+      <button class="chip" data-deck="facts" aria-pressed="false">Facts &amp; dates</button>
+    </div>
+    <div class="fc-wrap">
+      <div class="muted small" id="fcInfo"></div>
+      <button class="flash" id="flash" aria-label="Flip card"><div class="in">
+        <div class="face"><div class="lab">Question</div><div class="txt" id="fcFront"></div></div>
+        <div class="face back"><div class="lab">Answer</div><div class="txt" id="fcBack"></div></div>
+      </div></button>
+      <div class="row">
+        <button class="btn ghost" id="fcAgain">Show again soon</button>
+        <button class="btn accent" id="fcKnow">I knew it</button>
+      </div>
+      <button class="btn ghost small" id="fcRestart">Shuffle &amp; restart</button>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-trivia" role="tabpanel">
+    <div id="triviaMenu">
+      <div class="stats" id="stats"></div>
+      <div class="menu">
+        <button class="mode" data-mode="quick"><b>Quick round</b><span class="muted small">10 questions, mixed types. Questions you miss come back more often.</span></button>
+        <button class="mode" data-mode="survival"><b>Survival</b><span class="muted small">3 lives, no end. How long can you last?</span></button>
+        <button class="mode" id="weakBtn" data-mode="weak"><b>Weak spots</b><span class="muted small" id="weakInfo"></span></button>
+      </div>
+      <p class="small muted" style="margin-top:16px">Questions are rebuilt every time: wording, question type (multiple choice, true/false, “which came first?”, put-in-order) and wrong answers all change. Your progress is saved in this browser.</p>
+      <button class="btn ghost small" id="resetStats">Reset my progress</button>
+    </div>
+    <div id="triviaGame" hidden></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============ DATA ============ */
+const SECTIONS = [
+ {id:"s1",n:"4.1.1",t:"The reign of Alfonso XII and the stabilisation of the regime",
+  key:"Stable regime, limited democracy: the Turno meant two parties shared power.",
+  pts:["With the reign of Alfonso XII, Spain restored the monarchy.","Foundation 1 — The Constitution of 1876: the King and the Cortes (parliament) shared power.","Foundation 2 — The Turno system: the two major parties (Conservatives and Liberals) alternated in power, but elections were manipulated.","Result: stability, yes, but limited democracy. Small opposition parties had no chance."]},
+ {id:"s2",n:"4.1.2",t:"The regency of Maria Christina and the crisis",
+  key:"Universal male suffrage existed on paper, but fraud continued.",
+  pts:["When Alfonso XII died (1885), his wife Maria Christina became regent, as Alfonso XIII was yet to be born.","Electoral fraud: in 1890 universal suffrage for men was established, but elections continued to be falsified.","Catalan nationalism began in 1877; in 1901 the Lliga Regionalista party was founded.","Basque nationalism: Sabino Arana founded the PNV (Basque Nationalist Party), aiming for independence from Spain (1894 or 1895 in the notes)."]},
+ {id:"s3",n:"4.1.3",t:"Slow economic modernisation",
+  key:"Spain industrialised more slowly than other European countries.",
+  pts:["Lack of investment and technological backwardness.","Main industrial areas: Catalonia (textiles), the Basque Country (steel industry), Madrid and Valencia.","The railway network was built, but it was not enough to spread industrialisation.","Demographic changes: population growth and emigration to America.","Agricultural modernisation: many peasants continued to depend on large landowners."]},
+ {id:"s4",n:"4.1.4",t:"Social changes",
+  key:"Three groups: wealthy rulers, a politically passive middle, and rightless workers.",
+  pts:["Upper classes: aristocracy and bourgeoisie, wealthy and controlling political power.","Middle classes: civil servants, merchants and craftsmen, but most did not participate in politics.","Lower classes: workers and peasants, living in harsh conditions with almost no rights."]},
+ {id:"s5",n:"4.1.5",t:"The labour movement",
+  key:"Industry brought the fight for workers' rights: unions, a party, strikes.",
+  pts:["The Constitution of 1869 allowed the creation of trade unions.","In 1879, the PSOE (Spanish Socialist Workers' Party) was founded.","In 1888, the UGT (General Workers' Union) was founded, in defence of workers' rights.","Workers' protests and strikes increased."]},
+ {id:"s6",n:"4.1.6",t:"Modernisation and nationalism in the Basque Country",
+  key:"Industrial change and the loss of the fueros fed Basque nationalism.",
+  pts:["Industrialisation began in Biscay with the iron industry.","The bourgeoisie of Bilbao founded the Banco de Bilbao and the stock exchange to promote economic development.","Basque nationalism: some believed that the loss of the fueros (regional laws) and industrialisation endangered Basque identity.","Sabino Arana founded the PNV in 1895, seeking the independence of the Basque Country."]},
+ {id:"s7",n:"4.2",t:"The decline of the Restoration and the 1917 crisis",
+  key:"Corruption + WWI inequality + angry workers, army and politicians = crisis of the system.",
+  pts:["The corrupt system of alternation prevented real participation of the opposition, and disagreement in society was growing.","WWI (1914–1918): Spain stayed neutral and could export products. Only a few large companies benefited; workers saw no wage increase although prices rose, so social tension increased.","<b>Crisis in society:</b> trade unions (UGT and CNT) called for a general strike; the army was used to suppress the uprisings; workers and peasants demanded decent conditions and got no solution.","<b>Crisis in the army:</b> after the defeat in the Cuban War (1898) many officers lost confidence in the government. Military Defence Committees demanded salary increases and better conditions, and the government gave in.","<b>Crisis in politics:</b> Catalanists, republicans and socialists demanded deep reform, but the government dissolved the parliament to avoid it. More and more people supported a democratic alternative.","Conclusion: the crisis of 1917 revealed the weakness of the system and prepared the way for the Second Republic."]},
+ {id:"s8",n:"4.3",t:"The dictatorship of Primo de Rivera (1923–1930)",
+  key:"Initial support, then collapse after the 1929 economic crisis.",
+  pts:["In 1923, Primo de Rivera carried out a coup d'état and removed the democratic government, establishing a military dictatorship. He abolished the parliament, limited political parties and democratic freedoms, and repressed the opposition.","At first it had the support of society and the bourgeoisie: public works (railways, roads, construction) and order.","The economic crisis of 1929 worsened the situation: unemployment rose, agriculture and industry weakened, public debt increased.","Opposition grew (strikes, union protests, criticism from intellectuals). In 1930 Primo de Rivera resigned and went into exile, preparing the way for the Second Republic."]},
+ {id:"s9",n:"4.4.1",t:"The Second Republic and its reforms (1931–1936)",
+  key:"Proclaimed 14 April 1931 to bring democracy, social justice and modernisation.",
+  pts:["On 14 April 1931 the Second Republic was proclaimed and the monarchy disappeared.","The republicans formed a Provisional Government: better workers' wages, less influence for the Church, autonomy for Catalonia. Separation between religion and State created tension with the Church.","The poorer classes expected great changes, but public-order crisis, unemployment and peasants' protests grew.","The Constitution of 1931: new structure of government, universal suffrage (also for women), social justice, stronger separation of powers. Conservative sectors opposed it and there were military uprisings and coup attempts."]},
+ {id:"s10",n:"4.4.2",t:"The period of reform and difficulties (1931–1933)",
+  key:"Many reforms, but opposition from landowners, the Church and the army.",
+  pts:["The Statute of Autonomy of Catalonia was approved.","Agricultural reforms reduced the power of large landowners; a new police force was created to control public order.","Education: schools were opened and teachers' training improved to promote literacy.","In 1932 General Sanjurjo attempted a coup d'état; opposition grew among large landowners and sectors of the Church."]},
+ {id:"s11",n:"4.4.3",t:"The Spanish Confederation of the Right — CEDA (1933–1936)",
+  key:"The right wins in 1933, reverses reforms, and the left answers with the 1934 revolution.",
+  pts:["In the 1933 elections the right-wing forces won and the conservative party CEDA gained great influence.","The new government reversed many of the reforms of the previous two years, increasing social and political tension.","Workers and the anarchist and socialist unions CNT and UGT organised mobilisations, leading to the Revolution of October 1934.","In Asturias a workers' uprising was brutally repressed by the army: hundreds of workers killed, thousands arrested.","In 1934 the Catalan government took a step towards independence; the Spanish government annulled it and acted against autonomy, making the debate on Statutes of Autonomy more intense."]},
+ {id:"s12",n:"4.4.3",t:"The 1936 elections and the Popular Front",
+  key:"Popular Front wins; the right rejects the result; violence leads to the Civil War.",
+  pts:["In 1936 the right-wing government lost people's trust and the Popular Front won. It was a coalition of republicans, socialists and communists, aiming to restore the 1931–1933 reforms.","Right-wing sectors did not accept the result; tensions and extreme violence grew, leading in July 1936 to the start of the Spanish Civil War."]},
+ {id:"s13",n:"4.4.4",t:"The Second Republic in the Basque Country",
+  key:"Cities leaned left, the Catholic right feared anti-clerical reforms, and the Statute came too late.",
+  pts:["The first Basque towns joined the Republic on 14 April 1931; Eibar was the first municipality in the whole State to proclaim it.","Municipal elections of 12 April: the right won overall, but the republican and socialist left won in big industrial cities (Bilbao, Donostia/San Sebastian, Irun, Eibar). In Vitoria-Gasteiz the right won.","Two trends: those in favour of the Republic, and the right-wing including Catholics, who feared the anti-clerical reforms of the 1931 Constitution.","Basque autonomy was a main subject of debate. The Estella Project was presented in 1931, but Alava, Bizkaia and Gipuzkoa did not react in the same way; in Alava it did not go ahead, which blocked the Statute.","In the 1936 elections the republican forces became dominant and the PNV supported the Statute. The Basque Autonomy Statute was not approved until the end of 1936 and, because of the Civil War, was not properly developed.","1936 legislative elections: the left won; in the Basque Country the PNV dominated Bizkaia and Gipuzkoa, but the right-wing coalition won in Alava and Navarre."]}
+];
+
+const GLOSSARY = [
+ ["Cortes","The Spanish parliament. Under the 1876 Constitution the King and the Cortes shared power.","s1"],
+ ["Turno system","Conservatives and Liberals took turns in power, with manipulated elections.","s1"],
+ ["Regency","Rule by a regent when the monarch cannot rule. Maria Christina was regent for the unborn Alfonso XIII.","s2"],
+ ["Lliga Regionalista","Catalan nationalist party founded in 1901.","s2"],
+ ["PNV","Basque Nationalist Party, founded by Sabino Arana, aiming for Basque independence.","s2"],
+ ["Fueros","Regional laws of the Basque territories; their loss worried Basque nationalists.","s6"],
+ ["PSOE","Spanish Socialist Workers' Party, founded in 1879.","s5"],
+ ["UGT","General Workers' Union (socialist), founded in 1888.","s5"],
+ ["CNT","Anarchist trade union.","s7"],
+ ["Military Defence Committees","Army groups that demanded higher pay and better conditions in 1917.","s7"],
+ ["Cuban War","War lost by Spain in 1898; many officers lost confidence in the government afterwards.","s7"],
+ ["Coup d'état","Seizure of power by force, such as Primo de Rivera in 1923 or Sanjurjo's attempt in 1932.","s8"],
+ ["Provisional Government","Temporary government formed by the republicans in 1931.","s9"],
+ ["Universal suffrage","Right to vote for everyone; in 1931 also for women (men only from 1890).","s9"],
+ ["CEDA","Spanish Confederation of the Right, a conservative party that gained influence after 1933.","s11"],
+ ["Popular Front","1936 coalition of republicans, socialists and communists.","s12"],
+ ["Estella Project","1931 draft of a Basque autonomy statute; blocked when Alava did not go ahead.","s13"],
+ ["Statute of Autonomy","Document that sets the self-government of a region. Catalonia's was approved in 1931–33; the Basque one at the end of 1936.","s10"]
+];
+
+const THEMES = {pol:"Politics & democracy",nat:"Nationalism",lab:"Labour movement",army:"Army",eco:"Economy",church:"Church"};
+const SCOPES = {spain:"Spain",basque:"Basque Country",cat:"Catalonia"};
+const ERAS = [
+ {id:"rest",name:"The Restoration",range:"1869–1913",from:0,to:1914,c:"var(--rest)"},
+ {id:"crisis",name:"Decline and crisis",range:"1914–1922",from:1914,to:1923,c:"var(--crisis)"},
+ {id:"dict",name:"Primo de Rivera",range:"1923–1930",from:1923,to:1931,c:"var(--dict)"},
+ {id:"rep",name:"Second Republic",range:"1931–1936",from:1931,to:3000,c:"var(--rep)"}
+];
+// [id, label, sortValue, title, description, scopes, themes, leadsTo]
+const EV_RAW = [
+ ["u1869","1869",1869,"Constitution allows trade unions","The Constitution of 1869 allowed the creation of trade unions, opening the way for the labour movement.",["spain"],["lab"],["psoe","ugt"]],
+ ["c1876","1876",1876,"Constitution of 1876 and the Turno","The King and the Cortes shared power. Conservatives and Liberals alternated (Turno) with manipulated elections: stable, but limited democracy.",["spain"],["pol"],["fraud","crisis17"]],
+ ["cat1877","1877",1877,"Catalan nationalism begins","Catalan nationalism begins to take shape.",["cat"],["nat"],["lliga"]],
+ ["psoe","1879",1879,"PSOE founded","The Spanish Socialist Workers' Party is founded.",["spain"],["lab"],[]],
+ ["reg","1885",1885,"Alfonso XII dies; Maria Christina regent","Alfonso XIII is yet to be born, so Maria Christina rules as regent.",["spain"],["pol"],["fraud"]],
+ ["ugt","1888",1888,"UGT founded","The General Workers' Union is founded in defence of workers' rights.",["spain"],["lab"],["crisis17"]],
+ ["fraud","1890",1890,"Universal male suffrage, fraud continues","Men gain the vote, but elections continue to be falsified.",["spain"],["pol"],["crisis17"]],
+ ["pnv","1895",1895,"PNV founded by Sabino Arana","The Basque Nationalist Party seeks the independence of the Basque Country. (Your notes give both 1894 and 1895; the second mention is 1895.)",["basque"],["nat"],["estella"]],
+ ["cuba","1898",1898,"Defeat in the Cuban War","Army officers lose confidence in the government.",["spain"],["army"],["crisis17"]],
+ ["lliga","1901",1901,"Lliga Regionalista founded","Catalan nationalist party.",["cat"],["nat"],["reforms"]],
+ ["ww1","1914–1918",1914,"Spain neutral in the First World War","Spain exports products, but only a few large companies benefit; workers see no wage rise while prices go up.",["spain"],["eco"],["crisis17"]],
+ ["crisis17","1917",1917,"Crisis of 1917","Society (general strike), army (Military Defence Committees) and politics (parliament dissolved to avoid reform) all enter crisis. It reveals the weakness of the Restoration.",["spain"],["pol","army","lab"],["rep"]],
+ ["primo","1923",1923,"Primo de Rivera's coup d'état","Military dictatorship: parliament abolished, parties and freedoms limited, opposition repressed.",["spain"],["pol","army"],["resign"]],
+ ["crash","1929",1929,"Economic crisis of 1929","Unemployment rises, agriculture and industry weaken, public debt increases.",["spain"],["eco"],["resign"]],
+ ["resign","1930",1930,"Primo de Rivera resigns and goes into exile","Opposition (strikes, protests, intellectuals) forces him out.",["spain"],["pol"],["rep"]],
+ ["mun","12 Apr 1931",1931.28,"Municipal elections","The right wins overall, but the left wins the big industrial Basque cities (Bilbao, Donostia, Irun, Eibar). The right wins in Vitoria-Gasteiz.",["spain","basque"],["pol"],["rep"]],
+ ["rep","14 Apr 1931",1931.29,"Second Republic proclaimed","The monarchy disappears. Eibar is the first municipality in the State to proclaim the Republic.",["spain","basque"],["pol","church"],["const31","reforms"]],
+ ["const31","1931",1931.5,"Constitution of 1931","Universal suffrage (also women), social justice, stronger separation of powers. Opposed by conservative sectors and Catholics who feared anti-clerical reforms.",["spain","basque"],["pol","church"],["sanj"]],
+ ["estella","1931",1931.6,"Estella Project presented","Draft Basque statute. Alava, Bizkaia and Gipuzkoa react differently; it does not go ahead in Alava, blocking the Statute.",["basque"],["nat"],["statute"]],
+ ["reforms","1931–1933",1931.7,"Reform period","Catalan Statute approved, agricultural reform, new police force, more schools and teacher training.",["spain","cat"],["pol","church","eco"],["sanj"]],
+ ["sanj","1932",1932,"Sanjurjo's coup attempt","General Sanjurjo tries a coup; opposition to the Republic grows among landowners and the Church.",["spain"],["army"],["ceda"]],
+ ["ceda","1933",1933,"Right wins; CEDA gains influence","The new government reverses many reforms, raising tension.",["spain"],["pol"],["oct34"]],
+ ["oct34","Oct 1934",1934.8,"Revolution of October 1934","CNT and UGT mobilise. Asturias: workers' uprising repressed by the army (hundreds killed, thousands arrested). Catalonia: independence step annulled.",["spain","basque","cat"],["lab","army"],["pf"]],
+ ["pf","1936",1936.1,"Popular Front wins the elections","Republicans, socialists and communists want to restore the 1931–33 reforms. In the Basque Country the PNV dominates Bizkaia and Gipuzkoa; the right wins Alava and Navarre.",["spain","basque"],["pol"],["war","statute"]],
+ ["war","July 1936",1936.5,"Spanish Civil War begins","Right-wing sectors reject the result and violence grows.",["spain"],["army","pol"],[]],
+ ["statute","End of 1936",1936.95,"Basque Autonomy Statute approved","Approved only at the end of 1936; the Civil War prevented it from being properly developed.",["basque"],["nat"],[]]
+];
+const EVENTS = EV_RAW.map(r=>({id:r[0],y:r[1],sort:r[2],t:r[3],d:r[4],scope:r[5],th:r[6],to:r[7],from:[]}));
+const EV = Object.fromEntries(EVENTS.map(e=>[e.id,e]));
+EVENTS.forEach(e=>e.to.forEach(t=>EV[t].from.push(e.id)));
+EVENTS.sort((a,b)=>a.sort-b.sort);
+
+/* ---- trivia fact bank ---- */
+const POOLS = {
+ year:[1869,1876,1877,1879,1885,1888,1890,1895,1898,1901,1914,1917,1923,1929,1930,1931,1932,1933,1934,1936],
+ person:["Sabino Arana","Primo de Rivera","Alfonso XII","Maria Christina","General Sanjurjo","Alfonso XIII"],
+ org:["PSOE","PNV","CEDA","UGT","CNT","Lliga Regionalista","Popular Front"],
+ place:["Eibar","Bilbao","Donostia","Irun","Vitoria-Gasteiz","Biscay","Asturias"]
+};
+const FACTS = [];
+function yf(id,sec,np,year,ex){FACTS.push({id,sec,cat:"year",a:year,np,ex,
+  q:[`Which year saw ${np}?`,`In which year did ${np} take place?`,`Pick the year of ${np}.`]});}
+function cf(id,sec,cat,q,a,w,ex){FACTS.push({id,sec,cat,q:Array.isArray(q)?q:[q],a,w,ex});}
+yf("y-psoe","s5","the founding of the PSOE",1879);
+yf("y-ugt","s5","the founding of the UGT",1888);
+yf("y-c76","s1","the Constitution in which the King and the Cortes shared power",1876);
+yf("y-c69","s5","the Constitution that allowed the creation of trade unions",1869);
+yf("y-primo","s8","Primo de Rivera's coup d'état",1923);
+yf("y-resign","s8","Primo de Rivera's resignation and exile",1930);
+yf("y-crash","s8","the economic crisis that worsened Spain's situation under the dictatorship",1929);
+yf("y-rep","s9","the proclamation of the Second Republic",1931,"14 April 1931.");
+yf("y-sanj","s10","General Sanjurjo's coup attempt",1932);
+yf("y-lliga","s2","the founding of the Lliga Regionalista",1901);
+yf("y-cuba","s7","Spain's defeat in the Cuban War",1898);
+yf("y-regency","s2","the start of Maria Christina's regency",1885);
+yf("y-catnat","s2","the beginning of Catalan nationalism",1877);
+yf("y-suff","s2","the establishment of universal male suffrage",1890);
+yf("y-pnv","s6","the founding of the PNV",1895);
+yf("y-ceda","s11","the right-wing election victory that gave CEDA great influence",1933);
+yf("y-ast","s11","the workers' uprising in Asturias",1934);
+yf("y-pf","s12","the Popular Front's election victory",1936);
+yf("y-wsuff","s9","the Constitution that introduced women's suffrage",1931);
+cf("p-arana","s2","person","Who founded the PNV?","Sabino Arana");
+cf("p-regent","s2","person","Who became regent when Alfonso XII died?","Maria Christina",null,"Alfonso XIII had not been born yet.");
+cf("p-coup","s8","person",["Who carried out the 1923 coup d'état?","Which general established a military dictatorship in 1923?"],"Primo de Rivera");
+cf("p-sanj","s10","person","Which general attempted a coup d'état in 1932?","General Sanjurjo");
+cf("p-restorer","s1","person","Under which king was the monarchy restored?","Alfonso XII");
+cf("o-anarch","s7","org","Which trade union was anarchist?","CNT");
+cf("o-soc","s5","org","Which trade union was socialist and founded in 1888?","UGT");
+cf("o-cat","s2","org","Which Catalan nationalist party was founded in 1901?","Lliga Regionalista");
+cf("o-ceda","s11","org","Which conservative party gained great influence in the government after the 1933 elections?","CEDA");
+cf("o-pf","s12","org","Which coalition of republicans, socialists and communists won in 1936?","Popular Front");
+cf("o-psoe","s5","org","Which party was formally the Spanish Socialist Workers' Party?","PSOE");
+cf("pl-first","s13","place",["Which municipality was the first in the whole State to proclaim the Republic?","Where was the Second Republic first proclaimed in Spain?"],"Eibar");
+cf("pl-right","s13","place","In which Basque capital did the right win the April 1931 municipal elections?","Vitoria-Gasteiz");
+cf("pl-iron","s6","place","Where in the Basque Country did industrialisation begin, with the iron industry?","Biscay",null,"Biscay (Bizkaia).");
+cf("pl-ast","s11","place","Where was the October 1934 workers' uprising brutally repressed by the army?","Asturias");
+cf("c-turno","s1","text","What was the Turno system?","Conservatives and Liberals alternating in power with manipulated elections",
+  ["Two kings alternating on the throne","Free elections held every two years","The Cortes and the army taking turns to govern"]);
+cf("c-result","s1","text","What was the result of the Restoration system?","Stability but limited democracy",
+  ["Full democracy and many strong small parties","Constant coups and no stability","A republic with universal suffrage"]);
+cf("c-fraud","s2","text","What happened after universal male suffrage was established in 1890?","Elections continued to be falsified",
+  ["Elections became completely free","Women also gained the vote","Small parties won the elections"]);
+cf("c-cat","s3","text","What was Catalonia's main industry?","Textiles",["Steel","Mining of coal","Shipbuilding"]);
+cf("c-bas","s3","text","What was the main industry of the Basque Country?","Steel",["Textiles","Agriculture","Fishing canning"]);
+cf("c-lower","s4","text","Which social class lived in harsh conditions with almost no rights?","Workers and peasants",["The aristocracy","Civil servants and merchants","The bourgeoisie"]);
+cf("c-middle","s4","text","Which group included civil servants, merchants and craftsmen?","The middle classes",["The upper classes","The lower classes","The military"]);
+cf("c-bank","s6","text","What did the bourgeoisie of Bilbao found to promote economic development?","The Banco de Bilbao and the stock exchange",
+  ["The Spanish railway company","The UGT trade union","The Lliga Regionalista"]);
+cf("c-fueros","s6","text","What worried Basque nationalists, together with industrialisation?","The loss of the fueros",["The abolition of the Cortes","The arrival of the railway only","The Cuban War"]);
+cf("c-neutral","s7","text","Why could Spain export products during the First World War?","Because it remained neutral",
+  ["Because it joined the Allies","Because it won the Cuban War","Because the railways were finished"]);
+cf("c-ww1","s7","text","Who benefited from WWI exports in Spain?","Only a few large companies",["All workers through higher wages","Peasants and small landowners","Nobody; exports stopped"]);
+cf("c-committees","s7","text","What did the Military Defence Committees demand?","Salary increases and better working conditions",
+  ["The abolition of the monarchy","A general strike","Independence for Catalonia"]);
+cf("c-cuban","s7","text","Why did many army officers lose confidence in the government?","The defeat in the Cuban War",["The 1929 crash","The Constitution of 1931","The Turno system"]);
+cf("c-dissolve","s7","text","How did the government react to the demands for reform in 1917?","It dissolved the parliament",
+  ["It accepted all the reforms","It called new free elections","It created the Second Republic"]);
+cf("c-works","s8","text","What did Primo de Rivera promote at first to win support?","Public works: railways, roads and construction",
+  ["Free elections","Land reform","Autonomy for Catalonia"]);
+cf("c-1929","s8","text","What happened to Spain's economy after 1929?","Unemployment rose and public debt increased",
+  ["Industry boomed","Unemployment fell","Agriculture grew strongly"]);
+cf("c-reforms31","s9","text","Which reforms did the Provisional Government introduce in 1931?","Better wages, less Church influence, Catalan autonomy",
+  ["Higher taxes and a new monarchy","Ban on trade unions","Independence for the Basque Country"]);
+cf("c-church","s9","text","Why was there tension between the Church and the new regime?","The Republic encouraged separating religion from the State",
+  ["The Republic made Catholicism compulsory","The Church supported the coup of 1923","The Republic closed all universities"]);
+cf("c-edu","s10","text","What did the Republic do in education?","Opened schools and improved teachers' training",
+  ["Closed rural schools","Gave education to the Church","Banned teacher training"]);
+cf("c-agri","s10","text","What was the aim of the agricultural reforms?","To reduce the power of large landowners",
+  ["To strengthen large landowners","To end emigration to America","To abolish agriculture taxes"]);
+cf("c-33","s11","text","What did the government do after the 1933 elections?","Reversed many of the previous reforms",["Doubled the reforms","Restored the monarchy","Gave Catalonia independence"]);
+cf("c-cat34","s11","text","How did the Spanish government react to the Catalan step towards independence in 1934?","It annulled the attempt and acted against autonomy",
+  ["It approved Catalan independence","It ignored it","It called a referendum"]);
+cf("c-pfgoal","s12","text","What was the goal of the Popular Front?","To restore the reforms made between 1931 and 1933",
+  ["To restore the monarchy","To abolish the Cortes","To end the Statute of Catalonia"]);
+cf("c-war","s12","text","In which month and year did the Spanish Civil War begin?","July 1936",["April 1931","October 1934","February 1933"]);
+cf("c-basque1936","s13","text","Where did the right-wing coalition win in the 1936 Basque elections?","Alava and Navarre",["Bizkaia and Gipuzkoa","Bilbao and Donostia","Eibar and Irun"]);
+cf("c-estella","s13","text","Why was the Basque Statute blocked after the Estella Project?","Because it did not go ahead in Alava",
+  ["Because Bizkaia vetoed it","Because the PNV rejected it","Because the king refused it"]);
+cf("c-stat1936","s13","text","When was the Basque Autonomy Statute approved?","At the end of 1936",["In 1931","In 1934","In 1923"]);
+cf("c-catholics","s13","text","Why did Basque Catholics and the right fear the Republic?","Because of the anti-clerical reforms of the 1931 Constitution",
+  ["Because it abolished trade unions","Because it banned the Basque language","Because it closed the Cortes"]);
+cf("c-pnvaim","s2","text","What was the aim of the PNV?","Independence of the Basque Country from Spain",["Restoring absolute monarchy","Joining Catalonia","Abolishing the Church"]);
+
+/* ============ UTILS ============ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rnd = n=>Math.floor(Math.random()*n);
+const pick = a=>a[rnd(a.length)];
+const shuffle = a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const cap = s=>s.charAt(0).toUpperCase()+s.slice(1);
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+};
+const secOf = id=>SECTIONS.find(s=>s.id===id);
+
+/* ============ THEME + TABS ============ */
+(function(){
+  const t=store.get("hub-theme",null);
+  if(t) document.documentElement.dataset.theme=t;
+  $("#themeBtn").onclick=()=>{
+    const dark=matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur=document.documentElement.dataset.theme||(dark?"dark":"light");
+    const next=cur==="dark"?"light":"dark";
+    document.documentElement.dataset.theme=next;store.set("hub-theme",next);
+  };
+  $$("nav.tabs button").forEach(b=>b.onclick=()=>{
+    $$("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+    $$("section.pane").forEach(p=>p.classList.toggle("on",p.id==="pane-"+b.dataset.tab));
+    window.scrollTo({top:0});
+  });
+})();
+function goTab(name){$(`nav.tabs button[data-tab="${name}"]`).click();}
+
+/* ============ STUDY ============ */
+const termRe = new RegExp("\\b("+GLOSSARY.map(g=>g[0].replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).sort((a,b)=>b.length-a.length).join("|")+")\\b","g");
+const termDef = Object.fromEntries(GLOSSARY.map(g=>[g[0],g[1]]));
+function withTerms(html){
+  // protect existing tags, then wrap glossary terms in text segments
+  return html.split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg.replace(termRe,m=>`<span class="term" tabindex="0" data-def="${esc(termDef[m])}">${m}</span>`)).join("");
+}
+let studied = new Set(store.get("hub-studied",[]));
+function renderStudy(){
+  $("#acc").innerHTML = SECTIONS.map(s=>`
+    <details id="${s.id}" class="${studied.has(s.id)?"studied":""}">
+      <summary><span class="num">${s.n}</span><span>${esc(s.t)}</span><span class="done">✓ studied</span><span class="chev">›</span></summary>
+      <div class="body">
+        <div class="key"><b>Key idea:</b> ${esc(s.key)}</div>
+        <ul>${s.pts.map(p=>`<li>${withTerms(p)}</li>`).join("")}</ul>
+        <button class="btn ghost studybtn" data-study="${s.id}">${studied.has(s.id)?"Mark as not studied":"Mark as studied"}</button>
+      </div>
+    </details>`).join("");
+  const n=studied.size;
+  $("#studyCount").textContent=`${n} of ${SECTIONS.length} sections studied`;
+  $("#studyBar").style.width=(n/SECTIONS.length*100)+"%";
+}
+$("#acc").addEventListener("click",e=>{
+  const t=e.target.closest(".term");
+  if(t){const was=t.classList.contains("open");$$(".term.open").forEach(x=>x.classList.remove("open"));if(!was)t.classList.add("open");return;}
+  const b=e.target.closest("[data-study]");
+  if(b){const id=b.dataset.study;studied.has(id)?studied.delete(id):studied.add(id);store.set("hub-studied",[...studied]);
+    const open=$$("#acc details").filter(d=>d.open).map(d=>d.id);renderStudy();open.forEach(i=>{$("#"+i).open=true;});}
+});
+$("#acc").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("term")){e.preventDefault();e.target.click();}});
+
+/* ============ TIMELINE ============ */
+let fScope=null, fTheme=null, selEv=null;
+function chips(el,obj,get,set){
+  el.innerHTML=`<button class="chip" aria-pressed="${get()===null}" data-k="">All</button>`+Object.entries(obj).map(([k,v])=>`<button class="chip" aria-pressed="${get()===k}" data-k="${k}">${esc(v)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;set(b.dataset.k||null);renderTimeline();};
+}
+function renderTimeline(){
+  chips($("#fScope"),SCOPES,()=>fScope,v=>fScope=v);
+  chips($("#fTheme"),THEMES,()=>fTheme,v=>fTheme=v);
+  const linked = selEv? new Set([...EV[selEv].from,...EV[selEv].to]):new Set();
+  let html="";
+  ERAS.forEach(era=>{
+    const list=EVENTS.filter(e=>e.sort>=era.from&&e.sort<era.to&&(!fScope||e.scope.includes(fScope))&&(!fTheme||e.th.includes(fTheme)));
+    if(!list.length)return;
+    html+=`<div class="era"><h3>${era.name}</h3><span>${era.range}</span></div><ul class="tl" style="--c:${era.c}">`;
+    list.forEach(e=>{
+      const open=selEv===e.id;
+      html+=`<li id="ev-${e.id}"><button class="ev ${linked.has(e.id)?"linked":""}" data-ev="${e.id}" aria-expanded="${open}"><span class="y">${esc(e.y)}</span><span class="t">${esc(e.t)}</span><span class="tags">${e.th.map(t=>`<span class="tag">${THEMES[t]}</span>`).join("")}</span></button>`;
+      if(open){
+        const chipsOf=ids=>ids.length?ids.map(i=>`<button class="chip" data-go="${i}">${esc(EV[i].y)} · ${esc(EV[i].t)}</button>`).join(""):`<span class="muted small">—</span>`;
+        html+=`<div class="detail"><p>${esc(e.d)}</p><div class="links"><div><h4>Because of</h4>${chipsOf(e.from)}</div><div><h4>Led to</h4>${chipsOf(e.to)}</div></div>`+
+          `<p class="small muted" style="margin:10px 0 0">Scope: ${e.scope.map(s=>SCOPES[s]).join(", ")}</p></div>`;
+      }
+      html+=`</li>`;
+    });
+    html+=`</ul>`;
+  });
+  $("#tl").innerHTML=html||`<p class="muted">No events match these filters.</p>`;
+}
+$("#tl").addEventListener("click",e=>{
+  const go=e.target.closest("[data-go]");
+  const ev=e.target.closest("[data-ev]");
+  const id=go?go.dataset.go:ev&&ev.dataset.ev;
+  if(!id)return;
+  selEv=(!go&&selEv===id)?null:id;
+  if(go){fScope=null;fTheme=null;}
+  renderTimeline();
+  if(selEv){const el=$("#ev-"+selEv);el&&el.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});}
+});
+
+/* ============ GALAXY ============ */
+const ERA_COL = {rest:"#6aa8ff",crisis:"#ffc24d",dict:"#b69cff",rep:"#ff7a62"};
+const eraOf = e=>ERAS.find(x=>e.sort>=x.from&&e.sort<x.to);
+const NS="http://www.w3.org/2000/svg";
+let gTheme=null, gSel=null, gView={x:-420,y:-420,w:840};
+const GP = {}, GP0 = {};
+EVENTS.forEach((e,i)=>{
+  const a=-1.2+i*0.64, r=75+i*12.5;
+  GP0[e.id]={x:Math.cos(a)*r,y:Math.sin(a)*r};
+  GP[e.id]={...GP0[e.id]};
+});
+(function(){const saved=store.get("hub-galaxy-pos",{});for(const id in saved)if(GP[id]&&isFinite(saved[id].x)&&isFinite(saved[id].y))GP[id]={x:saved[id].x,y:saved[id].y};})();
+const saveGal=()=>store.set("hub-galaxy-pos",Object.fromEntries(Object.entries(GP).map(([k,v])=>[k,{x:+v.x.toFixed(1),y:+v.y.toFixed(1)}])));
+const edgeD=(ai,bi)=>{const a=GP[ai],b=GP[bi],mx=(a.x+b.x)/2*.72,my=(a.y+b.y)/2*.72;
+  return `M${a.x.toFixed(1)},${a.y.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)}`;};
+function placeNode(id){
+  const g=$(`#gal .gstar[data-id="${id}"]`);if(g)g.setAttribute("transform",`translate(${GP[id].x.toFixed(1)},${GP[id].y.toFixed(1)})`);
+  $$("#gal .gedge").forEach(p=>{if(p.dataset.a===id||p.dataset.b===id)p.setAttribute("d",edgeD(p.dataset.a,p.dataset.b));});
+}
+function spreadNodes(){
+  const ids=EVENTS.map(e=>e.id);
+  for(let it=0;it<160;it++){
+    for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){
+      const a=GP[ids[i]],b=GP[ids[j]];let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+      if(d<1){dx=Math.random()-.5;dy=Math.random()-.5;d=1;}
+      const min=95;if(d<min){const f=(min-d)/2/d;a.x-=dx*f;a.y-=dy*f;b.x+=dx*f;b.y+=dy*f;}
+    }
+    ids.forEach(id=>{const p=GP[id],o=GP0[id];p.x+=(o.x-p.x)*.012;p.y+=(o.y-p.y)*.012;});
+  }
+  ids.forEach(placeNode);saveGal();
+}
+function svgEl(n,attrs,parent){const el=document.createElementNS(NS,n);for(const k in attrs)el.setAttribute(k,attrs[k]);parent&&parent.appendChild(el);return el;}
+function buildGalaxy(){
+  const svg=$("#gal");svg.innerHTML="";
+  // background stars (deterministic)
+  const bg=svgEl("g",{},svg);let s=7;const rr=()=>(s=(s*9301+49297)%233280)/233280;
+  for(let i=0;i<140;i++)svgEl("circle",{class:"bgstar",cx:(rr()-.5)*1400,cy:(rr()-.5)*1400,r:(.4+rr()*1.1).toFixed(2),opacity:(.2+rr()*.6).toFixed(2),style:`animation-delay:${(rr()*4).toFixed(1)}s`},bg);
+  // core
+  const core=svgEl("g",{},svg);
+  svgEl("circle",{cx:0,cy:0,r:60,fill:"#ffcf8a",opacity:.08},core);
+  svgEl("circle",{cx:0,cy:0,r:34,fill:"#ffd9a0",opacity:.16},core);
+  svgEl("circle",{cx:0,cy:0,r:12,fill:"#fff3d6"},core);
+  const ct=svgEl("text",{x:0,y:-44,"text-anchor":"middle",fill:"#e9e2ff","font-size":11},core);ct.textContent="1869";
+  // edges
+  const eg=svgEl("g",{},svg);
+  EVENTS.forEach(e=>e.to.forEach(t=>{
+    svgEl("path",{class:"gedge","data-a":e.id,"data-b":t,d:edgeD(e.id,t)},eg);
+  }));
+  // stars
+  const sg=svgEl("g",{},svg);
+  EVENTS.forEach(e=>{
+    const p=GP[e.id],deg=e.from.length+e.to.length,r=7+deg*2.2,col=ERA_COL[eraOf(e).id];
+    const g=svgEl("g",{class:"gstar",tabindex:0,role:"button","data-id":e.id,"aria-label":`${e.y}: ${e.t}`,transform:`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`},sg);
+    svgEl("circle",{class:"halo",r:r*2.6,fill:col,opacity:.14},g);
+    svgEl("circle",{class:"halo",r:r*1.6,fill:col,opacity:.22},g);
+    svgEl("circle",{class:"core",r:r,fill:col,stroke:"#fff","stroke-opacity":.5,"stroke-width":1},g);
+    const y=svgEl("text",{x:0,y:r+13,"text-anchor":"middle"},g);y.textContent=e.y;
+    svgEl("text",{class:"ttl",x:0,y:-r-8,"text-anchor":"middle",visibility:"hidden"},g).textContent=e.t;
+  });
+  $("#gLegend").innerHTML=ERAS.map(x=>`<span><i style="background:${ERA_COL[x.id]}"></i>${x.name}</span>`).join("")+`<span>Bigger star = more links</span>`;
+  paintGalaxy();
+}
+function paintGalaxy(){
+  const rel=gSel?new Set([gSel,...EV[gSel].from,...EV[gSel].to]):null;
+  $$("#gal .gstar").forEach(g=>{
+    const e=EV[g.dataset.id];
+    const themeOk=!gTheme||e.th.includes(gTheme);
+    const dim=(rel&&!rel.has(e.id))||!themeOk;
+    g.classList.toggle("dim",dim);
+    g.querySelector(".ttl").setAttribute("visibility",rel&&rel.has(e.id)?"visible":"hidden");
+  });
+  $$("#gal .gedge").forEach(p=>{
+    const on=gSel&&(p.dataset.a===gSel||p.dataset.b===gSel);
+    p.classList.toggle("on",!!on);
+    p.classList.toggle("dim",!!gSel&&!on);
+  });
+  const info=$("#gInfo");
+  if(!gSel){info.innerHTML=`<p class="muted" style="margin:0">Select a star to see its story.</p>`;return;}
+  const e=EV[gSel];
+  requestAnimationFrame(()=>info.scrollIntoView({block:"nearest",behavior:"smooth"}));
+  const ch=ids=>ids.length?ids.map(i=>`<button class="chip" data-gsel="${i}">${esc(EV[i].y)} · ${esc(EV[i].t)}</button>`).join(""):`<span class="muted small">—</span>`;
+  info.innerHTML=`<h3 style="font-size:1.1rem;margin-bottom:6px">${esc(e.y)} — ${esc(e.t)}</h3><p>${esc(e.d)}</p>
+    <div class="links"><div><h4>Because of</h4>${ch(e.from)}</div><div><h4>Led to</h4>${ch(e.to)}</div></div>
+    <p style="margin:12px 0 0"><button class="btn ghost small" data-intl="${e.id}">Show in timeline</button></p>`;
+}
+function setView(){const v=gView;$("#gal").setAttribute("viewBox",`${v.x} ${v.y} ${v.w} ${v.w}`);}
+function zoom(f,cx=0,cy=0){
+  const nw=Math.min(1100,Math.max(220,gView.w*f));
+  gView.x=cx-(cx-gView.x)*(nw/gView.w);gView.y=cy-(cy-gView.y)*(nw/gView.w);gView.w=nw;setView();
+}
+(function(){
+  const svg=$("#gal");let drag=null,moved=false,node=null;
+  const toSvg=(ev)=>{const r=svg.getBoundingClientRect();return {x:gView.x+(ev.clientX-r.left)/r.width*gView.w,y:gView.y+(ev.clientY-r.top)/r.height*gView.w};};
+  svg.addEventListener("pointerdown",e=>{
+    const g=e.target.closest(".gstar");moved=false;
+    if(g){const p=toSvg(e),id=g.dataset.id;node={id,ox:GP[id].x-p.x,oy:GP[id].y-p.y,sx:e.clientX,sy:e.clientY};drag=null;}
+    else{node=null;drag={sx:e.clientX,sy:e.clientY,vx:gView.x,vy:gView.y};}
+  });
+  svg.addEventListener("pointermove",e=>{
+    if(node){
+      if(Math.abs(e.clientX-node.sx)+Math.abs(e.clientY-node.sy)>4)moved=true;
+      if(moved){const p=toSvg(e);GP[node.id].x=p.x+node.ox;GP[node.id].y=p.y+node.oy;placeNode(node.id);svg.classList.add("drag");}
+      return;
+    }
+    if(!drag)return;const r=svg.getBoundingClientRect();
+    const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;
+    if(Math.abs(dx)+Math.abs(dy)>4){moved=true;svg.classList.add("drag");}
+    if(moved){gView.x=drag.vx-dx/r.width*gView.w;gView.y=drag.vy-dy/r.width*gView.w;setView();}
+  });
+  const end=()=>{if(node&&moved)saveGal();drag=null;node=null;svg.classList.remove("drag");};
+  $("#gSpread").onclick=spreadNodes;
+  $("#gReset").onclick=()=>{for(const id in GP0)GP[id]={...GP0[id]};EVENTS.forEach(e=>placeNode(e.id));saveGal();};
+  svg.addEventListener("pointerup",end);svg.addEventListener("pointerleave",end);
+  svg.addEventListener("click",e=>{
+    if(moved){moved=false;return;}
+    const g=e.target.closest(".gstar");
+    gSel=g?(gSel===g.dataset.id?null:g.dataset.id):null;paintGalaxy();
+  });
+  svg.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest(".gstar")){e.preventDefault();const id=e.target.closest(".gstar").dataset.id;gSel=gSel===id?null:id;paintGalaxy();}});
+  svg.addEventListener("wheel",e=>{e.preventDefault();const p=toSvg(e);zoom(e.deltaY>0?1.12:.89,p.x,p.y);},{passive:false});
+  $("#gzi").onclick=()=>zoom(.8,gView.x+gView.w/2,gView.y+gView.w/2);
+  $("#gzo").onclick=()=>zoom(1.25,gView.x+gView.w/2,gView.y+gView.w/2);
+  $("#gzr").onclick=()=>{gView={x:-420,y:-420,w:840};setView();};
+  $("#gInfo").addEventListener("click",e=>{
+    const c=e.target.closest("[data-gsel]");if(c){gSel=c.dataset.gsel;paintGalaxy();return;}
+    const t=e.target.closest("[data-intl]");
+    if(t){selEv=t.dataset.intl;fScope=null;fTheme=null;renderTimeline();goTab("timeline");const el=$("#ev-"+selEv);el&&el.scrollIntoView({block:"center"});}
+  });
+})();
+function renderGalaxyFilters(){
+  const el=$("#gTheme");
+  el.innerHTML=`<button class="chip" aria-pressed="${gTheme===null}" data-k="">All</button>`+Object.entries(THEMES).map(([k,v])=>`<button class="chip" aria-pressed="${gTheme===k}" data-k="${k}">${esc(v)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;gTheme=b.dataset.k||null;renderGalaxyFilters();paintGalaxy();};
+}
+
+/* ============ FLASHCARDS ============ */
+let deckMode="all", queue=[], total=0, known=0;
+function buildDeck(){
+  const terms=GLOSSARY.map(g=>({f:g[0],b:g[1]}));
+  const facts=FACTS.map(f=>({f:f.q[0],b:String(f.a)+(f.ex?` — ${f.ex}`:"")}));
+  const d=deckMode==="terms"?terms:deckMode==="facts"?facts:[...terms,...facts];
+  queue=shuffle(d);total=queue.length;known=0;showCard();
+}
+function showCard(){
+  const fl=$("#flash");fl.classList.remove("flip");
+  if(!queue.length){
+    $("#fcFront").textContent="Deck finished!";$("#fcBack").textContent="You went through every card. Shuffle to go again.";
+    $("#fcInfo").textContent=`${total} of ${total} learned`;return;
+  }
+  $("#fcFront").textContent=queue[0].f;$("#fcBack").textContent=queue[0].b;
+  $("#fcInfo").textContent=`${known} of ${total} learned · ${queue.length} left`;
+}
+$("#flash").onclick=()=>queue.length&&$("#flash").classList.toggle("flip");
+$("#fcKnow").onclick=()=>{if(!queue.length)return;queue.shift();known++;showCard();};
+$("#fcAgain").onclick=()=>{if(!queue.length)return;const c=queue.shift();queue.splice(Math.min(3,queue.length),0,c);showCard();};
+$("#fcRestart").onclick=buildDeck;
+$$("[data-deck]").forEach(b=>b.onclick=()=>{deckMode=b.dataset.deck;$$("[data-deck]").forEach(x=>x.setAttribute("aria-pressed",x===b));buildDeck();});
+
+/* ============ TRIVIA ============ */
+let stats = store.get("hub-stats",{});            // key -> {c,w,s,seen}
+const st = k=>stats[k]||(stats[k]={c:0,w:0,s:0,seen:0});
+const saveStats=()=>store.set("hub-stats",stats);
+const uniqYear = e=>EVENTS.filter(x=>Math.floor(x.sort)===Math.floor(e.sort)).length===1;
+const WHAT_EVENTS = EVENTS.filter(uniqYear).filter(e=>/^\d{4}$/.test(e.y));
+const ALL_KEYS = [...FACTS.map(f=>f.id),...EVENTS.map(e=>"ev:"+e.id),"order"];
+const lastPhr = {};
+let G=null; // game state
+let recent=[];
+
+function distractors(f,n=3){
+  if(f.w) return shuffle(f.w).slice(0,n);
+  const pool=POOLS[f.cat].filter(x=>x!==f.a);
+  if(f.cat==="year") return pool.map(y=>[y,Math.abs(y-f.a)+Math.random()*6]).sort((a,b)=>a[1]-b[1]).slice(0,n+2).map(x=>x[0]).sort(()=>Math.random()-.5).slice(0,n);
+  return shuffle(pool).slice(0,n);
+}
+function phrasing(f){
+  let i=rnd(f.q.length);
+  if(f.q.length>1&&i===lastPhr[f.id])i=(i+1+rnd(f.q.length-1))%f.q.length;
+  lastPhr[f.id]=i;return f.q[i];
+}
+function explainFact(f){
+  const s=secOf(f.sec);
+  return `${f.ex?f.ex+" ":""}Review: ${s.n} ${s.t}.`;
+}
+function mkFact(f){
+  const q=phrasing(f);
+  const kind=Math.random()<.65?"mc":"tf";
+  if(kind==="mc"){
+    const opts=shuffle([f.a,...distractors(f)]).map(String);
+    return {key:f.id,kind:"Multiple choice",text:q,opts,correct:opts.indexOf(String(f.a)),explain:`Answer: ${f.a}. ${explainFact(f)}`};
+  }
+  const truth=Math.random()<.5;
+  const shown=truth?f.a:distractors(f,1)[0];
+  const text=f.cat==="year"?`${cap(f.np)} took place in ${shown}.`:`Question: “${q}”  Proposed answer: ${shown}.`;
+  return {key:f.id,kind:"True or false",text,opts:["True","False"],correct:truth?0:1,explain:truth?`Correct, it is true. ${explainFact(f)}`:`False. The right answer is ${f.a}. ${explainFact(f)}`};
+}
+function mkEvent(e){
+  const r=Math.random();
+  if(r<.5&&uniqYear(e)&&/^\d{4}$/.test(e.y)){
+    const others=shuffle(WHAT_EVENTS.filter(x=>x.id!==e.id)).slice(0,3);
+    const opts=shuffle([e,...others]).map(x=>x.t);
+    return {key:"ev:"+e.id,kind:"Which event?",text:`Which of these events took place in ${e.y}?`,opts,correct:opts.indexOf(e.t),explain:`${e.y}: ${e.t}. ${e.d}`};
+  }
+  let o=pick(EVENTS.filter(x=>Math.abs(x.sort-e.sort)>=2));
+  const first=Math.random()<.5;
+  const [a,b]=shuffle([e,o]);
+  const target=first?(a.sort<b.sort?a:b):(a.sort>b.sort?a:b);
+  return {key:"ev:"+e.id,kind:"Which came first?",text:`Which happened ${first?"first":"later"}?`,opts:[a.t,b.t],correct:target===a?0:1,
+    explain:`${target.y}: ${target.t}  ·  ${(target===a?b:a).y}: ${(target===a?b:a).t}`};
+}
+function mkOrder(){
+  const byYear={};EVENTS.forEach(e=>{const y=Math.floor(e.sort);(byYear[y]=byYear[y]||[]).push(e);});
+  const years=shuffle(Object.keys(byYear)).slice(0,4).sort();
+  const evs=years.map(y=>pick(byYear[y]));
+  const opts=shuffle(evs.map(e=>e.t));
+  return {key:"order",kind:"Put in order",text:"Tap the four events from the earliest to the latest.",opts,order:evs.map(e=>e.t),
+    explain:evs.map(e=>`${e.y}: ${e.t}`).join("  →  ")};
+}
+function weight(k){
+  const s=stats[k]||{c:0,w:0,s:0,seen:0};
+  return Math.max(.25,1+2*s.w/(1+s.c*.4)-.4*Math.min(3,s.s)+1/(1+s.seen));
+}
+function pickKey(pool){
+  let c=pool.filter(k=>!G.asked.has(k)&&!recent.includes(k));
+  if(!c.length)c=pool.filter(k=>!G.asked.has(k));
+  if(!c.length)c=pool;
+  const ws=c.map(k=>k==="order"?6:weight(k));let r=Math.random()*ws.reduce((a,b)=>a+b,0);
+  for(let i=0;i<c.length;i++){r-=ws[i];if(r<=0)return c[i];}
+  return c[c.length-1];
+}
+function buildQuestion(key){
+  if(key==="order")return mkOrder();
+  if(key.startsWith("ev:"))return mkEvent(EV[key.slice(3)]);
+  return mkFact(FACTS.find(f=>f.id===key));
+}
+const weakKeys=()=>ALL_KEYS.filter(k=>k!=="order"&&stats[k]&&stats[k].w>0&&stats[k].s<2);
+
+function renderMenu(){
+  const seen=Object.values(stats).filter(s=>s.seen>0);
+  const c=seen.reduce((a,s)=>a+s.c,0), w=seen.reduce((a,s)=>a+s.w,0);
+  const mastered=Object.values(stats).filter(s=>s.s>=2).length;
+  $("#stats").innerHTML=[["Questions answered",c+w],["Accuracy",c+w?Math.round(c/(c+w)*100)+"%":"—"],["Mastered",mastered+" / "+(ALL_KEYS.length-1)],["Best survival",(store.get("hub-best",0))+" ✓"]]
+    .map(x=>`<div class="card stat"><b>${x[1]}</b><span class="small muted">${x[0]}</span></div>`).join("");
+  const wk=weakKeys().length;
+  $("#weakBtn").disabled=!wk;
+  $("#weakInfo").textContent=wk?`${wk} topic${wk>1?"s":""} you missed and have not nailed yet.`:"Appears once you miss something.";
+  $("#triviaMenu").hidden=false;$("#triviaGame").hidden=true;
+}
+function start(mode){
+  const pool=mode==="weak"?weakKeys():ALL_KEYS;
+  G={mode,pool,asked:new Set(),n:0,max:mode==="quick"?10:mode==="weak"?Math.min(10,pool.length):Infinity,
+     score:0,correct:0,streak:0,lives:3,misses:[],q:null,done:false,picked:[]};
+  $("#triviaMenu").hidden=true;$("#triviaGame").hidden=false;next();
+}
+function next(){
+  if(G.n>=G.max||G.lives<=0){return finish();}
+  const key=pickKey(G.pool);G.asked.add(key);recent.push(key);if(recent.length>14)recent.shift();
+  G.q=buildQuestion(key);G.n++;G.answered=false;G.picked=[];renderQ();
+}
+function hud(){
+  const left=G.max===Infinity?`Question ${G.n}`:`Question ${G.n} of ${G.max}`;
+  const lives=G.mode==="survival"?` · Lives <b>${"♥".repeat(G.lives)||"—"}</b>`:"";
+  return `<div class="hud"><span>${left}${lives}</span><span>Score <b>${G.score}</b> · Streak <b>${G.streak}</b></span></div>`;
+}
+function renderQ(){
+  const q=G.q;
+  const body=q.order?
+    `<ol class="picked" id="picked" aria-live="polite"></ol><div class="opts" id="opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="k">+</span>${esc(o)}</button>`).join("")}</div><div class="row" style="margin-top:12px"><button class="btn ghost" id="undo">Undo</button></div>`:
+    `<div class="opts" id="opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="k">${i+1}</span>${esc(o)}</button>`).join("")}</div>`;
+  $("#triviaGame").innerHTML=hud()+`<div class="card q"><div class="kind">${q.kind}</div><h2>${esc(q.text)}</h2>${body}<div id="fb"></div></div>
+   <div class="row" style="margin-top:12px;justify-content:space-between"><button class="btn ghost small" id="quit">Quit</button><span></span></div>`;
+  $("#quit").onclick=()=>{if(confirm("Leave this game? Your answers so far are saved."))finish(true);};
+  $("#opts").onclick=e=>{const b=e.target.closest(".opt");if(!b||G.answered||b.disabled)return;q.order?pickOrder(+b.dataset.i,b):answer(+b.dataset.i);};
+  if(q.order)$("#undo").onclick=()=>{if(G.answered)return;const i=G.picked.pop();if(i!==undefined){$(`.opt[data-i="${i}"]`).classList.remove("used");$(`.opt[data-i="${i}"]`).disabled=false;drawPicked();}};
+}
+function drawPicked(cls){$("#picked").innerHTML=G.picked.map((i,n)=>{
+  const ok=cls&&G.q.opts[i]===G.q.order[n];return `<li class="${cls?(ok?"ok":"bad"):""}">${n+1}. ${esc(G.q.opts[i])}</li>`;}).join("");}
+function pickOrder(i,btn){
+  G.picked.push(i);btn.classList.add("used");btn.disabled=true;drawPicked();
+  if(G.picked.length===G.q.opts.length){
+    const ok=G.picked.every((idx,n)=>G.q.opts[idx]===G.q.order[n]);
+    drawPicked(true);settle(ok);
+  }
+}
+function answer(i){
+  const q=G.q,ok=i===q.correct;
+  $$(".opt").forEach((b,n)=>{b.disabled=true;if(n===q.correct)b.classList.add("ok");else if(n===i)b.classList.add("bad");});
+  settle(ok);
+}
+function settle(ok){
+  G.answered=true;const q=G.q,s=st(q.key);s.seen++;
+  if(ok){s.c++;s.s++;G.correct++;G.streak++;G.score+=10+Math.min(G.streak,5)*2;}
+  else{s.w++;s.s=0;G.streak=0;G.misses.push(q);if(G.mode==="survival")G.lives--;}
+  saveStats();
+  if(G.mode==="survival"&&ok){store.set("hub-best",Math.max(store.get("hub-best",0),G.correct));}
+  const last=(G.n>=G.max)||G.lives<=0;
+  $$(".opt").forEach(b=>b.disabled=true);
+  $("#fb").innerHTML=`<div class="fb ${ok?"ok":"bad"}"><b>${ok?"Correct!":"Not quite."}</b>${esc(q.explain)}</div>
+    <div class="row" style="margin-top:12px"><button class="btn accent" id="nextBtn">${last?"See results":"Next question"}</button></div>`;
+  $("#nextBtn").onclick=next;$("#nextBtn").focus({preventScroll:true});
+}
+function finish(early){
+  if(G.mode==="survival")store.set("hub-best",Math.max(store.get("hub-best",0),G.correct));
+  const answered=G.correct+G.misses.length;
+  $("#triviaGame").innerHTML=`<div class="card summary"><div class="muted small">${early?"Game ended":"Round complete"}</div>
+    <div class="big">${G.correct} / ${answered}</div><p class="muted">Score ${G.score}${G.mode==="survival"?" · survived "+G.correct+" correct answers":""}</p>
+    ${G.misses.length?`<div class="miss"><b>Review these:</b><ul>${G.misses.map(m=>`<li>${esc(m.text)}<br><span class="muted small">${esc(m.explain)}</span></li>`).join("")}</ul></div>`:`<p><b>Flawless!</b></p>`}
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn accent" id="again">Play again</button><button class="btn ghost" id="menu">Menu</button></div></div>`;
+  $("#again").onclick=()=>start(G.mode==="weak"&&!weakKeys().length?"quick":G.mode);
+  $("#menu").onclick=renderMenu;
+}
+$("#triviaMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mode]");if(b&&!b.disabled)start(b.dataset.mode);});
+$("#resetStats").onclick=()=>{if(confirm("Delete all trivia progress?")){stats={};recent=[];saveStats();store.set("hub-best",0);renderMenu();}};
+document.addEventListener("keydown",e=>{
+  if($("#triviaGame").hidden||!G||e.target.closest("button#quit"))return;
+  if(G.answered&&e.key==="Enter"){const n=$("#nextBtn");n&&n.click();return;}
+  if(!G.answered&&G.q&&!G.q.order&&/^[1-9]$/.test(e.key)){const b=$(`.opt[data-i="${+e.key-1}"]`);b&&b.click();}
+});
+
+/* ============ INIT ============ */
+renderStudy();renderTimeline();buildGalaxy();renderGalaxyFilters();buildDeck();renderMenu();
+</script>
+</body>
+</html>
